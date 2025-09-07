@@ -72,6 +72,9 @@ interface Document {
   fileName?: string;
   fileContent?: string; // base64
   fileType?: string;
+  fileName2?: string;
+  fileContent2?: string; // base64
+  fileType2?: string;
 }
 
 const app = document.getElementById('app') as HTMLDivElement;
@@ -265,11 +268,23 @@ const showViewModal = (docId: string) => {
   if (doc.fileName && doc.fileContent && doc.fileType) {
       attachmentContent.innerHTML = `
           <span>${doc.fileName}</span>
-          <button class="download-btn" data-id="${doc.id}">ดาวน์โหลด</button>
+          <button class="download-btn" data-id="${doc.id}" data-file-index="1">ดาวน์โหลด</button>
       `;
       attachmentContainer.style.display = 'block';
   } else {
       attachmentContainer.style.display = 'none';
+  }
+
+  const attachmentContainer2 = document.getElementById('view-attachment-container2') as HTMLDivElement;
+  const attachmentContent2 = document.getElementById('view-attachment2') as HTMLDivElement;
+  if (doc.fileName2 && doc.fileContent2 && doc.fileType2) {
+      attachmentContent2.innerHTML = `
+          <span>${doc.fileName2}</span>
+          <button class="download-btn" data-id="${doc.id}" data-file-index="2">ดาวน์โหลด</button>
+      `;
+      attachmentContainer2.style.display = 'block';
+  } else {
+      attachmentContainer2.style.display = 'none';
   }
 
   modal.style.display = 'flex';
@@ -296,6 +311,15 @@ const showEditModal = (docId: string) => {
       fileDisplay.textContent = 'ยังไม่ได้เลือกไฟล์';
   }
 
+  const fileDisplay2 = document.getElementById('edit-file-display2') as HTMLSpanElement;
+  const fileInput2 = document.getElementById('edit-attachment2') as HTMLInputElement;
+  fileInput2.value = ''; // Reset file input
+  if(doc.fileName2) {
+      fileDisplay2.textContent = doc.fileName2;
+  } else {
+      fileDisplay2.textContent = 'ยังไม่ได้เลือกไฟล์';
+  }
+
   modal.style.display = 'flex';
 };
 
@@ -316,6 +340,7 @@ const handleUpdateDocument = async (e: Event) => {
     const sourceInput = form.elements.namedItem('edit-source') as HTMLInputElement;
     const subjectInput = form.elements.namedItem('edit-subject') as HTMLTextAreaElement;
     const fileInput = form.elements.namedItem('edit-attachment') as HTMLInputElement;
+    const fileInput2 = form.elements.namedItem('edit-attachment2') as HTMLInputElement;
     const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 
 
@@ -368,6 +393,14 @@ const handleUpdateDocument = async (e: Event) => {
         updatedDocData.fileType = file.type;
         updatedDocData.fileContent = await fileToBase64(file);
     } // If no new file, the old file info remains from the spread operator
+
+    // Handle second file update
+    const file2 = fileInput2.files?.[0];
+    if (file2) {
+        updatedDocData.fileName2 = file2.name;
+        updatedDocData.fileType2 = file2.type;
+        updatedDocData.fileContent2 = await fileToBase64(file2);
+    }
 
     try {
         await syncWithGoogleSheet('update', updatedDocData);
@@ -449,7 +482,10 @@ const renderResultsTable = (docs: Document[], title: string) => {
         <td data-label="ที่มาหนังสือ">${doc.source}</td>
         <td data-label="เรื่องของหนังสือ">${doc.subject}</td>
         <td data-label="ไฟล์แนบ">
-            ${doc.fileName ? `<button class="download-btn" data-id="${doc.id}">ดาวน์โหลด</button>` : '<i>-</i>'}
+            ${doc.fileName ? `<button class="download-btn" data-id="${doc.id}" data-file-index="1">ดาวน์โหลด</button>` : '<i>-</i>'}
+        </td>
+        <td data-label="ไฟล์แนบที่ 2">
+            ${doc.fileName2 ? `<button class="download-btn" data-id="${doc.id}" data-file-index="2">ดาวน์โหลด</button>` : '<i>-</i>'}
         </td>
         <td data-label="การจัดการ">
           <div class="action-buttons">
@@ -476,6 +512,7 @@ const renderResultsTable = (docs: Document[], title: string) => {
             <th class="sortable-header" data-sort-key="source" ${getSortAttr('source')}>ที่มาหนังสือ</th>
             <th class="sortable-header" data-sort-key="subject" ${getSortAttr('subject')}>เรื่องของหนังสือ</th>
             <th>ไฟล์แนบ</th>
+            <th>ไฟล์แนบที่ 2</th>
             <th>การจัดการ</th>
           </tr>
         </thead>
@@ -516,6 +553,7 @@ const handleSearch = () => {
     doc.source.toLowerCase().includes(query) ||
     doc.notes.toLowerCase().includes(query) ||
     (doc.fileName && doc.fileName.toLowerCase().includes(query)) ||
+    (doc.fileName2 && doc.fileName2.toLowerCase().includes(query)) ||
     doc.tags.some(tag => tag.toLowerCase().includes(query))
   );
 
@@ -539,6 +577,7 @@ const handleSaveDocument = async (e: Event) => {
   const subjectInput = form.elements.namedItem('subject') as HTMLTextAreaElement;
   const notesInput = form.elements.namedItem('notes') as HTMLInputElement;
   const fileInput = form.elements.namedItem('attachment') as HTMLInputElement;
+  const fileInput2 = form.elements.namedItem('attachment2') as HTMLInputElement;
   const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 
 
@@ -585,6 +624,8 @@ const handleSaveDocument = async (e: Event) => {
       // Also reset custom file input display
       const fileDisplay = form.querySelector('.file-display-area span');
       if (fileDisplay) fileDisplay.textContent = 'ยังไม่ได้เลือกไฟล์';
+      const fileDisplay2 = document.getElementById('new-file-display2');
+      if (fileDisplay2) fileDisplay2.textContent = 'ยังไม่ได้เลือกไฟล์';
     }
   };
   
@@ -633,6 +674,13 @@ const handleSaveDocument = async (e: Event) => {
         newDoc.fileContent = await fileToBase64(file);
     }
     
+    const file2 = fileInput2.files?.[0];
+    if (file2) {
+        newDoc.fileName2 = file2.name;
+        newDoc.fileType2 = file2.type;
+        newDoc.fileContent2 = await fileToBase64(file2);
+    }
+    
     await syncWithGoogleSheet('create', newDoc);
     
     documents.unshift(newDoc);
@@ -664,6 +712,8 @@ const addAppEventListeners = () => {
     // Setup file input change listeners
     document.getElementById('attachment')?.addEventListener('change', handleFileChange);
     document.getElementById('edit-attachment')?.addEventListener('change', handleFileChange);
+    document.getElementById('attachment2')?.addEventListener('change', handleFileChange);
+    document.getElementById('edit-attachment2')?.addEventListener('change', handleFileChange);
 
     const switchTab = (activeBtn: HTMLButtonElement, activeView: HTMLDivElement, inactiveBtn: HTMLButtonElement, inactiveView: HTMLDivElement) => {
         activeBtn.classList.add('active');
@@ -718,8 +768,13 @@ const addAppEventListeners = () => {
           handleDeleteDocument(docId);
         } else if (target.classList.contains('download-btn')) {
             const doc = documents.find(d => d.id === docId);
-            if (doc && doc.fileContent && doc.fileName && doc.fileType) {
-                downloadFileFromBase64(doc.fileContent, doc.fileName, doc.fileType);
+            const fileIndex = target.dataset.fileIndex;
+            if (doc) {
+                if (fileIndex === '1' && doc.fileContent && doc.fileName && doc.fileType) {
+                    downloadFileFromBase64(doc.fileContent, doc.fileName, doc.fileType);
+                } else if (fileIndex === '2' && doc.fileContent2 && doc.fileName2 && doc.fileType2) {
+                    downloadFileFromBase64(doc.fileContent2, doc.fileName2, doc.fileType2);
+                }
             }
         }
       }
@@ -731,9 +786,14 @@ const addAppEventListeners = () => {
         const target = e.target as HTMLButtonElement;
         if (target.classList.contains('download-btn')) {
             const docId = target.dataset.id;
+            const fileIndex = target.dataset.fileIndex;
             const doc = documents.find(d => d.id === docId);
-            if (doc && doc.fileContent && doc.fileName && doc.fileType) {
-                downloadFileFromBase64(doc.fileContent, doc.fileName, doc.fileType);
+            if (doc) {
+                if (fileIndex === '1' && doc.fileContent && doc.fileName && doc.fileType) {
+                    downloadFileFromBase64(doc.fileContent, doc.fileName, doc.fileType);
+                } else if (fileIndex === '2' && doc.fileContent2 && doc.fileName2 && doc.fileType2) {
+                    downloadFileFromBase64(doc.fileContent2, doc.fileName2, doc.fileType2);
+                }
             }
         }
     });
@@ -829,11 +889,20 @@ const renderApp = () => {
                         </div>
                         <div class="error-message"></div>
                     </div>
-                    <div class="form-group form-group-fill form-group-notes">
-                        <label for="notes">หมายเหตุ</label>
-                        <input type="text" id="notes" name="notes">
+                    <div class="form-group form-group-fill">
+                         <label for="attachment2">ไฟล์แนบที่ 2<span class="attachment-hint">(ขนาดไฟล์ไม่เกิน 50MB, รูปภาพ/PDF)</span></label>
+                        <div class="file-input-wrapper">
+                            <label for="attachment2" class="file-input-label">เลือกไฟล์</label>
+                            <input type="file" id="attachment2" name="attachment2" accept="image/*,application/pdf">
+                            <div class="file-display-area"><span id="new-file-display2">ยังไม่ได้เลือกไฟล์</span></div>
+                        </div>
                         <div class="error-message"></div>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="notes">หมายเหตุ</label>
+                    <input type="text" id="notes" name="notes">
+                    <div class="error-message"></div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" id="save-btn">
@@ -871,6 +940,10 @@ const renderApp = () => {
            <div id="view-attachment-container" style="display: none;">
              <p><strong>ไฟล์แนบ:</strong></p>
              <div id="view-attachment" class="attachment-display"></div>
+           </div>
+           <div id="view-attachment-container2" style="display: none;">
+             <p><strong>ไฟล์แนบที่ 2:</strong></p>
+             <div id="view-attachment2" class="attachment-display"></div>
            </div>
           <p><strong>หมายเหตุ:</strong> <span id="view-notes"></span></p>
           <hr>
@@ -922,11 +995,20 @@ const renderApp = () => {
                         </div>
                         <div class="error-message"></div>
                     </div>
-                    <div class="form-group form-group-fill form-group-notes">
-                        <label for="edit-notes">หมายเหตุ</label>
-                        <input type="text" id="edit-notes" name="edit-notes">
+                    <div class="form-group form-group-fill">
+                         <label for="edit-attachment2">ไฟล์แนบที่ 2<span class="attachment-hint">(ขนาดไฟล์ไม่เกิน 50MB, รูปภาพ/PDF)</span></label>
+                        <div class="file-input-wrapper">
+                            <label for="edit-attachment2" class="file-input-label">เลือกไฟล์ใหม่</label>
+                            <input type="file" id="edit-attachment2" name="edit-attachment2" accept="image/*,application/pdf">
+                            <div class="file-display-area"><span id="edit-file-display2">ยังไม่ได้เลือกไฟล์</span></div>
+                        </div>
                         <div class="error-message"></div>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-notes">หมายเหตุ</label>
+                    <input type="text" id="edit-notes" name="edit-notes">
+                    <div class="error-message"></div>
                 </div>
             </div>
             <div class="modal-footer">
