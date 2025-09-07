@@ -834,11 +834,11 @@ const renderApp = () => {
                         </div>
                         <div class="error-message"></div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="notes">หมายเหตุ</label>
-                    <input type="text" id="notes" name="notes">
-                    <div class="error-message"></div>
+                    <div class="form-group form-group-fill">
+                        <label for="notes">หมายเหตุ</label>
+                        <input type="text" id="notes" name="notes">
+                        <div class="error-message"></div>
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" id="save-btn">
@@ -927,11 +927,11 @@ const renderApp = () => {
                         </div>
                         <div class="error-message"></div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="edit-notes">หมายเหตุ</label>
-                    <input type="text" id="edit-notes" name="edit-notes">
-                    <div class="error-message"></div>
+                    <div class="form-group form-group-fill">
+                        <label for="edit-notes">หมายเหตุ</label>
+                        <input type="text" id="edit-notes" name="edit-notes">
+                        <div class="error-message"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
