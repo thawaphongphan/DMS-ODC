@@ -428,11 +428,6 @@ const renderResultsTable = (docs: Document[], title: string) => {
   const sortedDocs = [...docs].sort((a: Document, b: Document) => {
     const key = currentSort.key as keyof Document;
 
-    if (key === 'docDate') {
-        const dateA = beDateToTimestamp(a.docDate);
-        const dateB = beDateToTimestamp(b.docDate);
-        return currentSort.direction === 'asc' ? dateA - dateB : dateB - dateA;
-    }
      if (key === 'createdAt') {
        const dateA = new Date(a.createdAt).getTime();
        const dateB = new Date(b.createdAt).getTime();
@@ -450,9 +445,8 @@ const renderResultsTable = (docs: Document[], title: string) => {
   const tableRows = sortedDocs.map(doc => `
       <tr>
         <td data-label="เลขที่หนังสือ">${doc.docNumber}</td>
-        <td data-label="วันที่ลงหนังสือ">${doc.docDate}</td>
-        <td data-label="ที่มาหนังสือ">${doc.source}</td>
         <td data-label="เรื่องของหนังสือ">${doc.subject}</td>
+        <td data-label="ที่มาหนังสือ">${doc.source}</td>
         <td data-label="ไฟล์แนบ">
             ${doc.fileName ? `<button class="download-btn" data-id="${doc.id}">ดาวน์โหลด</button>` : '<i>-</i>'}
         </td>
@@ -477,9 +471,8 @@ const renderResultsTable = (docs: Document[], title: string) => {
         <thead>
           <tr>
             <th class="sortable-header" data-sort-key="docNumber" ${getSortAttr('docNumber')}>เลขที่หนังสือ</th>
-            <th class="sortable-header" data-sort-key="docDate" ${getSortAttr('docDate')}>วันที่ลงหนังสือ</th>
-            <th class="sortable-header" data-sort-key="source" ${getSortAttr('source')}>ที่มาหนังสือ</th>
             <th class="sortable-header" data-sort-key="subject" ${getSortAttr('subject')}>เรื่องของหนังสือ</th>
+            <th class="sortable-header" data-sort-key="source" ${getSortAttr('source')}>ที่มาหนังสือ</th>
             <th>ไฟล์แนบ</th>
             <th>การจัดการ</th>
           </tr>
@@ -825,7 +818,7 @@ const renderApp = () => {
                     <div class="error-message"></div>
                 </div>
                  <div class="form-row">
-                    <div class="form-group form-group-fill">
+                    <div class="form-group" style="width: 50%;">
                          <label for="attachment">ไฟล์แนบ<span class="attachment-hint">(ขนาดไฟล์ไม่เกิน 50MB, รูปภาพ/PDF)</span></label>
                         <div class="file-input-wrapper">
                             <label for="attachment" class="file-input-label">เลือกไฟล์</label>
@@ -834,7 +827,7 @@ const renderApp = () => {
                         </div>
                         <div class="error-message"></div>
                     </div>
-                    <div class="form-group form-group-fill">
+                    <div class="form-group" style="width: 50%;">
                         <label for="notes">หมายเหตุ</label>
                         <input type="text" id="notes" name="notes">
                         <div class="error-message"></div>
@@ -918,7 +911,7 @@ const renderApp = () => {
                     <div class="error-message"></div>
                 </div>
                  <div class="form-row">
-                    <div class="form-group form-group-fill">
+                    <div class="form-group" style="width: 50%;">
                          <label for="edit-attachment">ไฟล์แนบ<span class="attachment-hint">(ขนาดไฟล์ไม่เกิน 50MB, รูปภาพ/PDF)</span></label>
                         <div class="file-input-wrapper">
                             <label for="edit-attachment" class="file-input-label">เลือกไฟล์ใหม่</label>
@@ -927,7 +920,7 @@ const renderApp = () => {
                         </div>
                         <div class="error-message"></div>
                     </div>
-                    <div class="form-group form-group-fill">
+                    <div class="form-group" style="width: 50%;">
                         <label for="edit-notes">หมายเหตุ</label>
                         <input type="text" id="edit-notes" name="edit-notes">
                         <div class="error-message"></div>
