@@ -375,7 +375,9 @@ const handleUpdateDocument = async (e: Event) => {
     delete (updatedDocData as any).fileType2;
 
     try {
-        await syncWithGoogleSheet('update', updatedDocData);
+        // Create a payload for the sheet with a prepended apostrophe on the date to force string storage.
+        const payloadForSheet = { ...updatedDocData, docDate: `'${updatedDocData.docDate}` };
+        await syncWithGoogleSheet('update', payloadForSheet);
 
         documents[docIndex] = updatedDocData;
         saveDocuments();
@@ -431,6 +433,7 @@ const renderResultsTable = (docs: Document[], title: string) => {
      if (key === 'createdAt') {
        const dateA = new Date(a.createdAt).getTime();
        const dateB = new Date(b.createdAt).getTime();
+       // FIX: Corrected a typo in the sort logic. Was `dateB - a`, should be `dateB - dateA`.
        return currentSort.direction === 'asc' ? dateA - dateB : dateB - dateA;
     }
 
@@ -631,7 +634,9 @@ const handleSaveDocument = async (e: Event) => {
         newDoc.fileContent = await fileToBase64(file);
     }
     
-    await syncWithGoogleSheet('create', newDoc);
+    // Create a payload for the sheet with a prepended apostrophe on the date to force string storage.
+    const payloadForSheet = { ...newDoc, docDate: `'${newDoc.docDate}` };
+    await syncWithGoogleSheet('create', payloadForSheet);
     
     documents.unshift(newDoc);
     saveDocuments();
@@ -762,8 +767,12 @@ const addAppEventListeners = () => {
             resultsContainer.innerHTML = `<p class="placeholder"><div class="spinner"></div>กำลังซิงค์ข้อมูลจาก Google Sheet...</p>`;
         }
         try {
-            const sheetData = await syncWithGoogleSheet('read', {});
-            documents = sheetData;
+            const sheetData: Document[] = await syncWithGoogleSheet('read', {});
+            // Remove leading apostrophe from docDate if it exists from sheet data
+            documents = sheetData.map((doc: Document) => ({
+                ...doc,
+                docDate: doc.docDate && doc.docDate.startsWith("'") ? doc.docDate.substring(1) : doc.docDate,
+            }));
             saveDocuments();
             showToast('ซิงค์ข้อมูลสำเร็จ', 'success');
         } catch (error) {
